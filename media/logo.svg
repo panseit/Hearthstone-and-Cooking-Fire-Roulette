@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6a36"/><stop offset="0.45" stop-color="#4a3718"/><stop offset="1" stop-color="#1c140a"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123a66"/><stop offset="0.45" stop-color="#0d1a2c"/><stop offset="0.55" stop-color="#2a0f06"/><stop offset="1" stop-color="#6e2a0c"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe39a"/><stop offset="0.5" stop-color="#d49b2e"/><stop offset="1" stop-color="#7a4f12"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0331f"/><stop offset="1" stop-color="#7c140c"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4aa8ff"/><stop offset="1" stop-color="#0f3f86"/>
+    </linearGradient>
+    <linearGradient id="black" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a2c22"/><stop offset="1" stop-color="#120c08"/>
+    </linearGradient>
+    <radialGradient id="wood" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#5a3518"/><stop offset="1" stop-color="#23130a"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb347" stop-opacity="0.85"/><stop offset="0.55" stop-color="#ff7a1a" stop-opacity="0.35"/><stop offset="1" stop-color="#ff5a00" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blueGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9fe0ff" stop-opacity="0.95"/><stop offset="0.5" stop-color="#3fa9ff" stop-opacity="0.5"/><stop offset="1" stop-color="#1a6dff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="flameOuter" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e2410f"/><stop offset="0.6" stop-color="#ff7b1c"/><stop offset="1" stop-color="#ffb13b"/>
+    </linearGradient>
+    <linearGradient id="flameMid" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ff9a1f"/><stop offset="1" stop-color="#ffd54a"/>
+    </linearGradient>
+    <linearGradient id="flameCore" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#fffbe6"/>
+    </linearGradient>
+    <linearGradient id="log" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a5429"/><stop offset="1" stop-color="#3e2210"/>
+    </linearGradient>
+    <radialGradient id="stone" cx="0.36" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#dfe7ee"/><stop offset="0.4" stop-color="#8795a4"/><stop offset="1" stop-color="#2a323b"/>
+    </radialGradient>
+    <radialGradient id="ball" cx="0.35" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="0.6" stop-color="#e9e2d0"/><stop offset="1" stop-color="#9c927c"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.72">
+      <stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.6"/>
+    </radialGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.14"/><stop offset="0.35" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="runeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="content"><rect x="30" y="30" width="452" height="452" rx="14"/></clipPath>
+  </defs>
+
+  <!-- bevelled icon frame -->
+  <rect x="0" y="0" width="512" height="512" rx="40" fill="url(#bronze)"/>
+  <rect x="14" y="14" width="484" height="484" rx="28" fill="#0c0805"/>
+
+  <g clip-path="url(#content)">
+    <rect x="30" y="30" width="452" height="452" fill="url(#bg)"/>
+
+    <!-- roulette wheel: blue, black, red, black -->
+    <circle cx="256" cy="262" r="198" fill="#0c0805" opacity="0.6"/>
+    <circle cx="256" cy="262" r="190" fill="url(#gold)"/>
+    <circle cx="256" cy="262" r="180" fill="#1a0f08"/>
+    <path d="M256.00,84.00 A178,178 0 0 1 324.12,97.55 L306.51,140.05 A132,132 0 0 0 256.00,130.00 Z" fill="url(#blue)" stroke="#e2b54c" stroke-width="2.2"/><path d="M324.12,97.55 A178,178 0 0 1 381.87,136.13 L349.34,168.66 A132,132 0 0 0 306.51,140.05 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M381.87,136.13 A178,178 0 0 1 420.45,193.88 L377.95,211.49 A132,132 0 0 0 349.34,168.66 Z" fill="url(#red)" stroke="#e2b54c" stroke-width="2.2"/><path d="M420.45,193.88 A178,178 0 0 1 434.00,262.00 L388.00,262.00 A132,132 0 0 0 377.95,211.49 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M434.00,262.00 A178,178 0 0 1 420.45,330.12 L377.95,312.51 A132,132 0 0 0 388.00,262.00 Z" fill="url(#blue)" stroke="#e2b54c" stroke-width="2.2"/><path d="M420.45,330.12 A178,178 0 0 1 381.87,387.87 L349.34,355.34 A132,132 0 0 0 377.95,312.51 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M381.87,387.87 A178,178 0 0 1 324.12,426.45 L306.51,383.95 A132,132 0 0 0 349.34,355.34 Z" fill="url(#red)" stroke="#e2b54c" stroke-width="2.2"/><path d="M324.12,426.45 A178,178 0 0 1 256.00,440.00 L256.00,394.00 A132,132 0 0 0 306.51,383.95 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M256.00,440.00 A178,178 0 0 1 187.88,426.45 L205.49,383.95 A132,132 0 0 0 256.00,394.00 Z" fill="url(#blue)" stroke="#e2b54c" stroke-width="2.2"/><path d="M187.88,426.45 A178,178 0 0 1 130.13,387.87 L162.66,355.34 A132,132 0 0 0 205.49,383.95 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M130.13,387.87 A178,178 0 0 1 91.55,330.12 L134.05,312.51 A132,132 0 0 0 162.66,355.34 Z" fill="url(#red)" stroke="#e2b54c" stroke-width="2.2"/><path d="M91.55,330.12 A178,178 0 0 1 78.00,262.00 L124.00,262.00 A132,132 0 0 0 134.05,312.51 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M78.00,262.00 A178,178 0 0 1 91.55,193.88 L134.05,211.49 A132,132 0 0 0 124.00,262.00 Z" fill="url(#blue)" stroke="#e2b54c" stroke-width="2.2"/><path d="M91.55,193.88 A178,178 0 0 1 130.13,136.13 L162.66,168.66 A132,132 0 0 0 134.05,211.49 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/><path d="M130.13,136.13 A178,178 0 0 1 187.88,97.55 L205.49,140.05 A132,132 0 0 0 162.66,168.66 Z" fill="url(#red)" stroke="#e2b54c" stroke-width="2.2"/><path d="M187.88,97.55 A178,178 0 0 1 256.00,84.00 L256.00,130.00 A132,132 0 0 0 205.49,140.05 Z" fill="url(#black)" stroke="#e2b54c" stroke-width="2.2"/>
+    <circle cx="256" cy="262" r="132" fill="url(#wood)" stroke="url(#gold)" stroke-width="6"/>
+    <circle cx="292.29" cy="79.57" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="359.34" cy="107.35" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="410.65" cy="158.66" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="438.43" cy="225.71" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="438.43" cy="298.29" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="410.65" cy="365.34" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="359.34" cy="416.65" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="292.29" cy="444.43" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="219.71" cy="444.43" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="152.66" cy="416.65" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="101.35" cy="365.34" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="73.57" cy="298.29" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="73.57" cy="225.71" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="101.35" cy="158.66" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="152.66" cy="107.35" r="3.2" fill="#fff1b8" opacity="0.9"/><circle cx="219.71" cy="79.57" r="3.2" fill="#fff1b8" opacity="0.9"/>
+
+    <!-- fire, right of centre -->
+    <g transform="translate(300 336) scale(0.8) translate(-256 -330)">
+      <circle cx="256" cy="236" r="170" fill="url(#glow)"/>
+      <g transform="rotate(16 256 334)">
+        <rect x="160" y="320" width="192" height="30" rx="14" fill="url(#log)" stroke="#2a160a" stroke-width="3"/>
+        <ellipse cx="344" cy="335" rx="9" ry="13" fill="#d7a067" stroke="#6b3f1d" stroke-width="3"/>
+      </g>
+      <g transform="rotate(-16 256 334)">
+        <rect x="160" y="320" width="192" height="30" rx="14" fill="url(#log)" stroke="#2a160a" stroke-width="3"/>
+        <ellipse cx="168" cy="335" rx="9" ry="13" fill="#d7a067" stroke="#6b3f1d" stroke-width="3"/>
+      </g>
+      <path d="M256 92 C 272 136, 334 168, 324 238 C 318 290, 290 326, 256 330 C 222 326, 192 292, 188 240 C 184 194, 212 176, 220 144 C 232 172, 236 188, 246 196 C 242 158, 244 126, 256 92 Z" fill="url(#flameOuter)"/>
+      <path d="M256 92 C 272 136, 334 168, 324 238 C 318 290, 290 326, 256 330 C 222 326, 192 292, 188 240 C 184 194, 212 176, 220 144 C 232 172, 236 188, 246 196 C 242 158, 244 126, 256 92 Z" fill="url(#flameMid)" transform="translate(256 330) scale(0.7) translate(-256 -330)"/>
+      <path d="M256 92 C 272 136, 334 168, 324 238 C 318 290, 290 326, 256 330 C 222 326, 192 292, 188 240 C 184 194, 212 176, 220 144 C 232 172, 236 188, 246 196 C 242 158, 244 126, 256 92 Z" fill="url(#flameCore)" transform="translate(256 330) scale(0.4) translate(-256 -330)"/>
+      <circle cx="306" cy="118" r="5" fill="#ffd36a"/>
+      <circle cx="288" cy="78" r="3.5" fill="#ffe08a"/>
+    </g>
+
+    <!-- hearthstone, front left -->
+    <circle cx="192" cy="300" r="128" fill="url(#blueGlow)"/>
+    <g transform="rotate(-14 192 304)">
+      <ellipse cx="197" cy="311" rx="70" ry="88" fill="#000" opacity="0.45"/>
+      <ellipse cx="192" cy="304" rx="70" ry="88" fill="url(#stone)" stroke="#1a2027" stroke-width="4"/>
+      <path d="M142 258 C 160 234, 206 228, 226 252" fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="7" stroke-linecap="round"/>
+      <g filter="url(#runeGlow)" fill="none" stroke="#5cc8ff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M192 238 C 162 252, 160 290, 192 302 C 224 314, 222 354, 192 370"/>
+        <path d="M164 336 C 150 320, 152 300, 168 290"/>
+        <path d="M220 272 C 234 288, 232 306, 216 316"/>
+      </g>
+      <g fill="none" stroke="#e8f8ff" stroke-width="5" stroke-linecap="round">
+        <path d="M192 238 C 162 252, 160 290, 192 302 C 224 314, 222 354, 192 370"/>
+        <path d="M164 336 C 150 320, 152 300, 168 290"/>
+        <path d="M220 272 C 234 288, 232 306, 216 316"/>
+      </g>
+    </g>
+    <circle cx="132" cy="196" r="3.5" fill="#bfe9ff"/>
+    <circle cx="110" cy="244" r="2.8" fill="#8fdcff"/>
+    <circle cx="156" cy="170" r="2.4" fill="#e0f6ff"/>
+
+    <!-- roulette ball -->
+    <circle cx="380.14" cy="169.57" r="13" fill="#000" opacity="0.45"/>
+    <circle cx="378.14" cy="166.57" r="13" fill="url(#ball)"/>
+
+    <rect x="30" y="30" width="452" height="452" fill="url(#vignette)"/>
+    <rect x="30" y="30" width="452" height="452" fill="url(#gloss)"/>
+  </g>
+  <rect x="30" y="30" width="452" height="452" rx="14" fill="none" stroke="#e4bf62" stroke-width="3" opacity="0.85"/>
+</svg>
