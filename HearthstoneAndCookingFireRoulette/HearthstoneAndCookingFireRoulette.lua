@@ -97,6 +97,8 @@ local CLICK_TO_PLACE = {
 }
 local MIN_REAL_COOLDOWN = 2 -- toys trigger the global cooldown, which isn't a real toy cooldown
 local REROLL_DELAY = 1 -- give the game time to apply the new cooldown before picking the next one
+local SETTLE_DELAY = 2 -- seconds after a loading screen before bags, spells and toys can be trusted
+local RECHECK_DELAY = 5 -- seconds to wait before believing that nothing at all is usable
 local ROW_HEIGHT = 26
 local ICON_SIZE, ICON_GAP = 32, 4
 -- Stops for the two gradient words of the addon's name, the same as in the .toc title.
@@ -115,14 +117,18 @@ local GetItemSpell = (C_Item and C_Item.GetItemSpell) or GetItemSpell
 local GetItemCount = (C_Item and C_Item.GetItemCount) or GetItemCount
 
 local itemInfo = {} -- [itemID] = { name = , icon = }
-local itemsLoaded, worldEntered = false, false
+local itemsLoaded = false
+-- False during loading screens and for SETTLE_DELAY after them, when the game can report empty bags, no spells and
+-- no toys. settleCount tells the latest loading screen's timer from older ones.
+local worldReady, settleCount = false, 0
 local RequestUpdate
 
 local eventFrame = CreateFrame("Frame")
 
 -- The two macros. Besides the fields below, each gets its saved settings (db) on load, and keeps:
---   current   the itemID or FALLBACK the macro uses now
---   lastUsed  the itemID or FALLBACK most recently used or interrupted mid-cast
+--   current          the itemID or FALLBACK the macro uses now
+--   lastUsed         the itemID or FALLBACK most recently used or interrupted mid-cast
+--   recheckedNothing true once "nothing usable" has been seen and a second look is due or done
 --   warnedNone, warnedMacrosFull, cooldownTimer, updateQueued, forceQueued
 local fires = {
 	dbKey = "fires",
@@ -246,7 +252,8 @@ local function CookingFireName()
 	return name or L.COOKING_FIRE
 end
 
--- Returns the next pick (itemID or FALLBACK) and, when every toy is on cooldown, the seconds until one is ready.
+-- Returns the next pick (itemID or FALLBACK); when every toy is on cooldown, the seconds until one is ready; and when
+-- no toy is collected, the warning to show.
 function fires:Choose(forceNew)
 	local db = self.db
 	local collected, ready = {}, {}
@@ -278,11 +285,7 @@ function fires:Choose(forceNew)
 	end
 
 	if #collected == 0 then
-		if not self.warnedNone then
-			self.warnedNone = true
-			Print(L.NO_TOYS)
-		end
-		return FALLBACK
+		return FALLBACK, nil, L.NO_TOYS
 	end
 
 	-- Every toy is on cooldown and the spell isn't in the rotation: fall back to it anyway if known.
@@ -368,8 +371,9 @@ local function CanUseHearthstone(itemID)
 	return PlayerHasToy(itemID) and MeetsLimit(itemID)
 end
 
--- Returns the next pick (an itemID). Every hearthstone shares one cooldown, so unlike the fires there's no other
--- one to switch to while it runs: the pick just changes after each use.
+-- Returns the next pick (an itemID), plus the warning to show when none is usable (the second value is always nil,
+-- matching fires:Choose). Every hearthstone shares one cooldown, so unlike the fires there's no other one to switch
+-- to while it runs: the pick just changes after each use.
 function hearthstones:Choose(forceNew)
 	local usable = {}
 	for _, itemID in ipairs(self.keys) do
@@ -379,11 +383,7 @@ function hearthstones:Choose(forceNew)
 	end
 
 	if #usable == 0 then
-		if not self.warnedNone then
-			self.warnedNone = true
-			Print(L.NO_HEARTHSTONES)
-		end
-		return HEARTHSTONE_ITEM
+		return HEARTHSTONE_ITEM, nil, L.NO_HEARTHSTONES
 	end
 
 	if not forceNew and tContains(usable, self.current) then
@@ -394,6 +394,10 @@ end
 
 function hearthstones:Macro(choice)
 	local info = itemInfo[choice]
+	if not info then
+		-- The game never sent this item's data (only possible for the Hearthstone fallback); its ID works as well.
+		return C_Item.GetItemIconByID(choice) or QUESTION_MARK_ICON, "#showtooltip\n/use item:" .. choice
+	end
 	return info.icon, "#showtooltip\n/use " .. info.name
 end
 
@@ -452,7 +456,24 @@ local function UpdateMacro(mode, forceNew)
 		mode.cooldownTimer = nil
 	end
 
-	local choice, wait = mode:Choose(forceNew)
+	local choice, wait, nothingWarning = mode:Choose(forceNew)
+	if nothingWarning then
+		-- The game sometimes reports no toys, spells or items at all for a moment, so look again before settling on
+		-- the fallback.
+		if not mode.recheckedNothing then
+			mode.recheckedNothing = true
+			C_Timer.After(RECHECK_DELAY, function()
+				RequestUpdate(mode, forceNew)
+			end)
+			return
+		end
+		if not mode.warnedNone then
+			mode.warnedNone = true
+			Print(nothingWarning)
+		end
+	else
+		mode.recheckedNothing = false
+	end
 	mode.current = choice
 	if wait then
 		-- Toys are back once this fires, so pick again rather than keep a pick made for lack of them.
@@ -472,12 +493,15 @@ function RequestUpdate(mode, forceNew)
 	if forceNew then
 		mode.forceQueued = true
 	end
-	if mode.updateQueued or not (itemsLoaded and worldEntered) then
+	if mode.updateQueued or not (itemsLoaded and worldReady) then
 		return
 	end
 	mode.updateQueued = true
 	C_Timer.After(0.2, function()
 		mode.updateQueued = false
+		if not worldReady then
+			return -- a loading screen began; the update runs after it, and forceQueued keeps a pending reroll
+		end
 		if InCombatLockdown() then
 			eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 			return
@@ -854,6 +878,8 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("LOADING_SCREEN_ENABLED")
+eventFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
 eventFrame:RegisterEvent("TOYS_UPDATED")
 eventFrame:RegisterEvent("BAG_UPDATE_DELAYED")
 eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
@@ -874,13 +900,20 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		end
 		CreateOptionsPanel()
 		LoadItems()
-	elseif event == "PLAYER_ENTERING_WORLD" then
-		self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-		-- Give the macro and toy collection data a moment to arrive after login.
-		C_Timer.After(2, function()
-			worldEntered = true
-			RequestAllUpdates()
+	elseif event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED" then
+		-- After logging in, reloading or any loading screen (a hearthstone, a portal), give bags, spells and the toy
+		-- collection a moment to arrive before trusting them.
+		settleCount = settleCount + 1
+		local settle = settleCount
+		C_Timer.After(SETTLE_DELAY, function()
+			if settle == settleCount then
+				worldReady = true
+				RequestAllUpdates()
+			end
 		end)
+	elseif event == "LOADING_SCREEN_ENABLED" then
+		worldReady = false
+		settleCount = settleCount + 1
 	elseif event == "PLAYER_REGEN_ENABLED" then
 		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 		RequestAllUpdates()
