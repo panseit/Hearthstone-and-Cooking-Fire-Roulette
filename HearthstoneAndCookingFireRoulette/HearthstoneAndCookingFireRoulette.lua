@@ -98,7 +98,9 @@ local CLICK_TO_PLACE = {
 local MIN_REAL_COOLDOWN = 2 -- toys trigger the global cooldown, which isn't a real toy cooldown
 local REROLL_DELAY = 1 -- give the game time to apply the new cooldown before picking the next one
 local SETTLE_DELAY = 2 -- seconds after a loading screen before bags, spells and toys can be trusted
-local RECHECK_DELAY = 5 -- seconds to wait before believing that nothing at all is usable
+-- When nothing at all looks usable, look again every RECHECK_DELAY seconds, up to RECHECK_TRIES times, before
+-- believing it: during and after loading screens the game can report no toys, spells or items for a while.
+local RECHECK_DELAY, RECHECK_TRIES = 5, 6
 local ROW_HEIGHT = 26
 local ICON_SIZE, ICON_GAP = 32, 4
 -- Stops for the two gradient words of the addon's name, the same as in the .toc title.
@@ -118,8 +120,8 @@ local GetItemCount = (C_Item and C_Item.GetItemCount) or GetItemCount
 
 local itemInfo = {} -- [itemID] = { name = , icon = }
 local itemsLoaded = false
--- False during loading screens and for SETTLE_DELAY after them, when the game can report empty bags, no spells and
--- no toys. settleCount tells the latest loading screen's timer from older ones.
+-- False until SETTLE_DELAY after each loading screen, when the game can still report empty bags, no spells and no
+-- toys. Every pause ends on its own timer; settleCount tells the latest timer from older ones.
 local worldReady, settleCount = false, 0
 local RequestUpdate
 
@@ -128,7 +130,7 @@ local eventFrame = CreateFrame("Frame")
 -- The two macros. Besides the fields below, each gets its saved settings (db) on load, and keeps:
 --   current          the itemID or FALLBACK the macro uses now
 --   lastUsed         the itemID or FALLBACK most recently used or interrupted mid-cast
---   recheckedNothing true once "nothing usable" has been seen and a second look is due or done
+--   nothingChecks    how many times in a row nothing at all looked usable
 --   warnedNone, warnedMacrosFull, cooldownTimer, updateQueued, forceQueued
 local fires = {
 	dbKey = "fires",
@@ -458,10 +460,9 @@ local function UpdateMacro(mode, forceNew)
 
 	local choice, wait, nothingWarning = mode:Choose(forceNew)
 	if nothingWarning then
-		-- The game sometimes reports no toys, spells or items at all for a moment, so look again before settling on
-		-- the fallback.
-		if not mode.recheckedNothing then
-			mode.recheckedNothing = true
+		-- Leave the macro alone and look again later, rather than switch to the fallback on a bad reading.
+		mode.nothingChecks = (mode.nothingChecks or 0) + 1
+		if mode.nothingChecks <= RECHECK_TRIES then
 			C_Timer.After(RECHECK_DELAY, function()
 				RequestUpdate(mode, forceNew)
 			end)
@@ -472,7 +473,7 @@ local function UpdateMacro(mode, forceNew)
 			Print(nothingWarning)
 		end
 	else
-		mode.recheckedNothing = false
+		mode.nothingChecks = 0
 	end
 	mode.current = choice
 	if wait then
@@ -745,6 +746,8 @@ local function CreatePage(mode, parent)
 
 	local function SelectionChanged()
 		mode.warnedNone = false
+		-- The player just chose this, so if nothing is left, say so right away instead of looking again.
+		mode.nothingChecks = RECHECK_TRIES
 		RequestUpdate(mode)
 	end
 
@@ -878,7 +881,6 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-eventFrame:RegisterEvent("LOADING_SCREEN_ENABLED")
 eventFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
 eventFrame:RegisterEvent("TOYS_UPDATED")
 eventFrame:RegisterEvent("BAG_UPDATE_DELAYED")
@@ -902,7 +904,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		LoadItems()
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "LOADING_SCREEN_DISABLED" then
 		-- After logging in, reloading or any loading screen (a hearthstone, a portal), give bags, spells and the toy
-		-- collection a moment to arrive before trusting them.
+		-- collection a moment to arrive before trusting them. The pause always ends on this timer, whatever order
+		-- the game sends these events in.
+		worldReady = false
 		settleCount = settleCount + 1
 		local settle = settleCount
 		C_Timer.After(SETTLE_DELAY, function()
@@ -911,9 +915,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 				RequestAllUpdates()
 			end
 		end)
-	elseif event == "LOADING_SCREEN_ENABLED" then
-		worldReady = false
-		settleCount = settleCount + 1
 	elseif event == "PLAYER_REGEN_ENABLED" then
 		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 		RequestAllUpdates()
