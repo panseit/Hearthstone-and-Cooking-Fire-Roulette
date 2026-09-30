@@ -1,8 +1,8 @@
-## Interface: 120100
+## Interface: 120100, 120105
 ## Title: |cffffffffH|cffecf6ffe|cffd9eeffa|cffc5e5ffr|cffb2ddfft|cff9fd4ffh|cff8ccbffs|cff79c3fft|cff65baffo|cff52b2ffn|cff3fa9ffe|r|cffffd100 and |r|cffff2b1cC|cfff62f1eo|cffec331fo|cffe33721k|cffd93b23i|cffd03f25n|cffc64226g |cffbd4628F|cffb34a2ai|cffaa4e2br|cffa0522de|r|cffffd100 Roulette|r
 ## Notes: A different way home and a different fire to cook on, every time.
 ## Author: panseit
-## Version: v1.0.2
+## Version: v1.0.3
 ## SavedVariables: HearthstoneAndCookingFireRouletteDB
 ## IconTexture: Interface\AddOns\HearthstoneAndCookingFireRoulette\media\logo
 
