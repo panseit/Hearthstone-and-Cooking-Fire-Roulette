@@ -101,6 +101,9 @@ local SETTLE_DELAY = 2 -- seconds after a loading screen before bags, spells and
 -- When nothing at all looks usable, look again every RECHECK_DELAY seconds, up to RECHECK_TRIES times, before
 -- believing it: during and after loading screens the game can report no toys, spells or items for a while.
 local RECHECK_DELAY, RECHECK_TRIES = 5, 6
+-- A pending update or a loading-screen pause normally ends within seconds. One older than this lost its timer,
+-- so the next update request clears it instead of waiting forever.
+local STUCK_AFTER = 10
 local ROW_HEIGHT = 26
 local ICON_SIZE, ICON_GAP = 32, 4
 -- Stops for the two gradient words of the addon's name, the same as in the .toc title.
@@ -123,6 +126,8 @@ local itemsLoaded = false
 -- False until SETTLE_DELAY after each loading screen, when the game can still report empty bags, no spells and no
 -- toys. Every pause ends on its own timer; settleCount tells the latest timer from older ones.
 local worldReady, settleCount = false, 0
+local pausedAt -- GetTime() when the latest pause began
+local lastCast -- the player's latest cast, for /hcfr status: { at =, spellID = or hidden = true, mode = }
 local RequestUpdate
 
 local eventFrame = CreateFrame("Frame")
@@ -131,6 +136,8 @@ local eventFrame = CreateFrame("Frame")
 --   current          the itemID or FALLBACK the macro uses now
 --   lastUsed         the itemID or FALLBACK most recently used or interrupted mid-cast
 --   nothingChecks    how many times in a row nothing at all looked usable
+--   queuedAt         GetTime() when the pending update was queued
+--   updatedAt        GetTime() of the latest macro update, for /hcfr status
 --   warnedNone, warnedMacrosFull, cooldownTimer, updateQueued, forceQueued
 local fires = {
 	dbKey = "fires",
@@ -487,6 +494,7 @@ local function UpdateMacro(mode, forceNew)
 	-- The tooltip always names the next pick; only the icon can be fixed.
 	local icon, body = mode:Macro(choice)
 	WriteMacro(mode, mode.db.macroIcon or icon, body)
+	mode.updatedAt = GetTime()
 end
 
 -- Batches update requests and waits until out of combat, since macros can't be edited in combat.
@@ -494,10 +502,19 @@ function RequestUpdate(mode, forceNew)
 	if forceNew then
 		mode.forceQueued = true
 	end
+	-- Safety net: never stay blocked by a pending update or a pause whose timer was lost.
+	local now = GetTime()
+	if mode.updateQueued and now - mode.queuedAt > STUCK_AFTER then
+		mode.updateQueued = false
+	end
+	if not worldReady and pausedAt and now - pausedAt > STUCK_AFTER then
+		worldReady = true
+	end
 	if mode.updateQueued or not (itemsLoaded and worldReady) then
 		return
 	end
 	mode.updateQueued = true
+	mode.queuedAt = now
 	C_Timer.After(0.2, function()
 		mode.updateQueued = false
 		if not worldReady then
@@ -907,6 +924,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		-- collection a moment to arrive before trusting them. The pause always ends on this timer, whatever order
 		-- the game sends these events in.
 		worldReady = false
+		pausedAt = GetTime()
 		settleCount = settleCount + 1
 		local settle = settleCount
 		C_Timer.After(SETTLE_DELAY, function()
@@ -926,11 +944,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_INTERRUPTED" then
 		local _, _, spellID = ...
 		if issecretvalue and issecretvalue(spellID) then
+			lastCast = { at = GetTime(), hidden = true }
 			return
 		end
+		lastCast = { at = GetTime(), spellID = spellID }
 		for _, mode in ipairs(MODES) do
 			local key = mode.spellToKey[spellID]
 			if key then
+				lastCast.mode = mode
 				mode.lastUsed = key
 				if event == "UNIT_SPELLCAST_INTERRUPTED" then
 					-- A stopped cast starts no cooldown, so there's nothing to wait for.
@@ -948,7 +969,41 @@ end)
 ------------------------------------------------------------------------------------------------------------------------
 -- Slash command
 ------------------------------------------------------------------------------------------------------------------------
+-- "/hcfr status" prints what the addon is doing, to find out why the macros aren't changing.
+local function PrintStatus()
+	local now = GetTime()
+	local function YesNo(value)
+		return value and L.YES or L.NO
+	end
+	local function Ago(t)
+		return t and L.SECONDS_AGO:format(now - t) or L.NEVER
+	end
+
+	local GetMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+	Print(L.STATUS_HEADER:format(GetMetadata and GetMetadata(addonName, "Version") or "?"))
+	local ready = worldReady and L.YES or L.STATUS_PAUSED:format(pausedAt and now - pausedAt or 0)
+	print(L.STATUS_GENERAL:format(YesNo(itemsLoaded), ready, YesNo(InCombatLockdown())))
+	for _, mode in ipairs(MODES) do
+		local name = mode.db.macroName
+		local pending = mode.updateQueued and L.STATUS_PENDING:format(now - mode.queuedAt) or L.NO
+		print(L.STATUS_MACRO:format(name, YesNo(GetMacroIndexByName(name) ~= 0),
+			mode.current and mode:RowName(mode.current) or L.NONE, pending, YesNo(mode.forceQueued), Ago(mode.updatedAt)))
+	end
+	if not lastCast then
+		print(L.STATUS_CAST_NONE)
+	elseif lastCast.hidden then
+		print(L.STATUS_CAST_HIDDEN:format(Ago(lastCast.at)))
+	else
+		local whose = lastCast.mode and lastCast.mode.db.macroName or L.STATUS_NOT_OURS
+		print(L.STATUS_CAST:format(lastCast.spellID, whose, Ago(lastCast.at)))
+	end
+end
+
 SLASH_HEARTHSTONEANDCOOKINGFIREROULETTE1 = "/hcfr"
-SlashCmdList.HEARTHSTONEANDCOOKINGFIREROULETTE = function()
+SlashCmdList.HEARTHSTONEANDCOOKINGFIREROULETTE = function(msg)
+	if strtrim(msg or ""):lower() == "status" then
+		PrintStatus()
+		return
+	end
 	Settings.OpenToCategory(ns.category:GetID())
 end

@@ -47,3 +47,19 @@ L.COVENANT_ONLY = "%s or Renown 80 only" -- %s is the covenant's name
 L.COVENANT = "covenant"
 L.DRAENEI_ONLY = "draenei only"
 L.NO_HEARTHSTONES = "You can't use any of the selected hearthstones, so the macro uses your Hearthstone."
+
+-- /hcfr status
+L.STATUS_HEADER = "status (%s)" -- %s is the addon version
+L.STATUS_GENERAL = "  Item data loaded: %s. Ready: %s. In combat: %s."
+L.STATUS_PAUSED = "no, paused %.0fs ago"
+L.STATUS_MACRO = "  %s: macro exists: %s. Next: %s. Update pending: %s. Reroll queued: %s. Last update: %s."
+L.STATUS_PENDING = "yes, for %.0fs"
+L.STATUS_CAST = "  Last cast: spell %d (%s), %s."
+L.STATUS_NOT_OURS = "not one of the addon's"
+L.STATUS_CAST_HIDDEN = "  Last cast: hidden by the game, %s."
+L.STATUS_CAST_NONE = "  Last cast: none yet."
+L.SECONDS_AGO = "%.0fs ago"
+L.YES = "yes"
+L.NO = "no"
+L.NEVER = "never"
+L.NONE = "none"
