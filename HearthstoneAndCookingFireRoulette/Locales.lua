@@ -50,7 +50,10 @@ L.NO_HEARTHSTONES = "You can't use any of the selected hearthstones, so the macr
 
 -- /hcfr status
 L.STATUS_HEADER = "status (%s)" -- %s is the addon version
-L.STATUS_GENERAL = "  Item data loaded: %s. Ready: %s. In combat: %s."
+L.STATUS_GENERAL = "  Item data: %s. Ready: %s. In combat: %s."
+L.STATUS_ITEMS_ALL = "all %d loaded"
+L.STATUS_ITEMS_MISSING = "%d of %d loaded, missing %s" -- the last %s lists item IDs
+L.STATUS_ITEMS_WAITING = "%d of %d loaded, waiting"
 L.STATUS_PAUSED = "no, paused %.0fs ago"
 L.STATUS_MACRO = "  %s: macro exists: %s. Next: %s. Update pending: %s. Reroll queued: %s. Last update: %s."
 L.STATUS_PENDING = "yes, for %.0fs"

@@ -104,6 +104,7 @@ local RECHECK_DELAY, RECHECK_TRIES = 5, 6
 -- A pending update or a loading-screen pause normally ends within seconds. One older than this lost its timer,
 -- so the next update request clears it instead of waiting forever.
 local STUCK_AFTER = 10
+local ITEM_LOAD_TIMEOUT = 5 -- seconds to wait for every item's data before starting with the ones that arrived
 local ROW_HEIGHT = 26
 local ICON_SIZE, ICON_GAP = 32, 4
 -- Stops for the two gradient words of the addon's name, the same as in the .toc title.
@@ -122,7 +123,9 @@ local GetItemSpell = (C_Item and C_Item.GetItemSpell) or GetItemSpell
 local GetItemCount = (C_Item and C_Item.GetItemCount) or GetItemCount
 
 local itemInfo = {} -- [itemID] = { name = , icon = }
-local itemsLoaded = false
+local itemModes = {} -- [itemID] = the macro it belongs to, for every item the game knows
+local itemsWanted, itemsHave = 0, 0
+local itemsLoaded = false -- true once every item arrived or ITEM_LOAD_TIMEOUT passed
 -- False until SETTLE_DELAY after each loading screen, when the game can still report empty bags, no spells and no
 -- toys. Every pause ends on its own timer; settleCount tells the latest timer from older ones.
 local worldReady, settleCount = false, 0
@@ -539,35 +542,65 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 -- Item data
 ------------------------------------------------------------------------------------------------------------------------
-local function LoadItems()
-	-- Starts at 1 so items that are already cached can't finish the count before the loop does.
-	local pending = 1
-	local function Done()
-		pending = pending - 1
-		if pending == 0 then
-			itemsLoaded = true
-			RequestAllUpdates()
+-- When an item arrives, it joins its macro's choices; once all have arrived (or ITEM_LOAD_TIMEOUT passed), the
+-- macros start updating.
+local function ItemArrived(mode, key, item)
+	if itemInfo[key] then
+		return -- a retry and the first request can both come back
+	end
+	itemInfo[key] = { name = item:GetItemName(), icon = item:GetItemIcon() }
+	local _, spellID = GetItemSpell(key)
+	if spellID then
+		mode.spellToKey[spellID] = key
+	end
+	itemsHave = itemsHave + 1
+	if itemsLoaded then
+		RequestUpdate(mode)
+	elseif itemsHave == itemsWanted then
+		itemsLoaded = true
+		RequestAllUpdates()
+	end
+end
+
+local function RequestItem(mode, key)
+	local item = Item:CreateFromItemID(key)
+	item:ContinueOnItemLoad(function()
+		ItemArrived(mode, key, item)
+	end)
+end
+
+-- The game silently drops the request for an item it fails to load, so ask again for any still missing.
+local function RequestMissingItems()
+	for key, mode in pairs(itemModes) do
+		if not itemInfo[key] then
+			RequestItem(mode, key)
 		end
 	end
+end
 
+local function LoadItems()
+	-- Count them all first, so items that are already cached and arrive at once can't finish the count early.
 	for _, mode in ipairs(MODES) do
 		for _, key in ipairs(mode.keys) do
 			-- Every key but the Cooking Fire spell is an item.
 			if key ~= FALLBACK and (not C_Item.DoesItemExistByID or C_Item.DoesItemExistByID(key)) then
-				pending = pending + 1
-				local item = Item:CreateFromItemID(key)
-				item:ContinueOnItemLoad(function()
-					itemInfo[key] = { name = item:GetItemName(), icon = item:GetItemIcon() }
-					local _, spellID = GetItemSpell(key)
-					if spellID then
-						mode.spellToKey[spellID] = key
-					end
-					Done()
-				end)
+				itemModes[key] = mode
+				itemsWanted = itemsWanted + 1
 			end
 		end
 	end
-	Done()
+	for key, mode in pairs(itemModes) do
+		RequestItem(mode, key)
+	end
+
+	-- Don't let one item that never arrives keep both macros waiting: start with the ones that did.
+	C_Timer.After(ITEM_LOAD_TIMEOUT, function()
+		if not itemsLoaded then
+			itemsLoaded = true
+			RequestMissingItems()
+			RequestAllUpdates()
+		end
+	end)
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -930,6 +963,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		C_Timer.After(SETTLE_DELAY, function()
 			if settle == settleCount then
 				worldReady = true
+				if itemsLoaded then
+					RequestMissingItems()
+				end
 				RequestAllUpdates()
 			end
 		end)
@@ -981,8 +1017,23 @@ local function PrintStatus()
 
 	local GetMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
 	Print(L.STATUS_HEADER:format(GetMetadata and GetMetadata(addonName, "Version") or "?"))
+	local missing = {}
+	for key in pairs(itemModes) do
+		if not itemInfo[key] then
+			missing[#missing + 1] = key
+		end
+	end
+	table.sort(missing)
+	local items
+	if #missing == 0 then
+		items = L.STATUS_ITEMS_ALL:format(itemsWanted)
+	elseif itemsLoaded then
+		items = L.STATUS_ITEMS_MISSING:format(itemsHave, itemsWanted, table.concat(missing, ", "))
+	else
+		items = L.STATUS_ITEMS_WAITING:format(itemsHave, itemsWanted)
+	end
 	local ready = worldReady and L.YES or L.STATUS_PAUSED:format(pausedAt and now - pausedAt or 0)
-	print(L.STATUS_GENERAL:format(YesNo(itemsLoaded), ready, YesNo(InCombatLockdown())))
+	print(L.STATUS_GENERAL:format(items, ready, YesNo(InCombatLockdown())))
 	for _, mode in ipairs(MODES) do
 		local name = mode.db.macroName
 		local pending = mode.updateQueued and L.STATUS_PENDING:format(now - mode.queuedAt) or L.NO
