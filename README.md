@@ -43,6 +43,8 @@ Type `/hcfr`, or go to **Game Menu → Options → AddOns → Hearthstone and Co
 - **Macro icon**: click one of the icons to use it for the macro, or **?** to show the upcoming pick's icon. Hover an icon to see what it is.
 - **The list**: tick the hearthstones or fires the macro can use, or use **Select all** / **Deselect all**.
 
+If a macro stops changing, type `/hcfr status`. It prints what the addon is doing, which helps when reporting a problem.
+
 ## Supported hearthstones
 
 All of these return you to your home inn and share one cooldown.
