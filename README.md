@@ -68,6 +68,7 @@ All of these return you to your home inn and share one cooldown.
 | Greatfather Winter's Hearthstone |
 | Headless Horseman's Hearthstone |
 | Hearthstone of the Flame |
+| Hiveborne Hearthstone |
 | Holographic Digitalization Hearthstone |
 | Kyrian Hearthstone |
 | Lightcalled Hearthstone |
@@ -84,6 +85,7 @@ All of these return you to your home inn and share one cooldown.
 | Peddlefeet's Lovely Hearthstone |
 | Preyseeker's Hearthstone |
 | Redeployment Module |
+| Shadeweaver's Hearthstone |
 | Stone of the Hearth |
 | The Innkeeper's Daughter |
 | Timewalker's Hearthstone |

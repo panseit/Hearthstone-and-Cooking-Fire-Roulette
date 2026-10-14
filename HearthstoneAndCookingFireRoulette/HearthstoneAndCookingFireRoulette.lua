@@ -40,6 +40,7 @@ local HEARTHSTONE_TOYS = {
 	162973, -- Greatfather Winter's Hearthstone
 	163045, -- Headless Horseman's Hearthstone
 	209035, -- Hearthstone of the Flame
+	281136, -- Hiveborne Hearthstone
 	168907, -- Holographic Digitalization Hearthstone
 	184353, -- Kyrian Hearthstone
 	257736, -- Lightcalled Hearthstone
@@ -56,6 +57,7 @@ local HEARTHSTONE_TOYS = {
 	165670, -- Peddlefeet's Lovely Hearthstone
 	263933, -- Preyseeker's Hearthstone
 	235016, -- Redeployment Module
+	281615, -- Shadeweaver's Hearthstone
 	212337, -- Stone of the Hearth
 	64488,  -- The Innkeeper's Daughter
 	193588, -- Timewalker's Hearthstone
