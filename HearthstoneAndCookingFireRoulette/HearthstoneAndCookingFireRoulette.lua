@@ -63,6 +63,7 @@ local HEARTHSTONE_TOYS = {
 	193588, -- Timewalker's Hearthstone
 	142542, -- Tome of Town Portal
 	183716, -- Venthyr Sinstone
+	288912, -- Wood-Cursed Hearthstone
 }
 
 -- Covenant hearthstones work for members of their covenant, and for every character once the account has reached
