@@ -91,6 +91,7 @@ All of these return you to your home inn and share one cooldown.
 | Timewalker's Hearthstone |
 | Tome of Town Portal |
 | Venthyr Sinstone |
+| Wood-Cursed Hearthstone |
 
 ## Supported cooking fires
 
